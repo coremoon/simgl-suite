@@ -134,9 +134,10 @@ amount_total: sys.cy.USD = amount_u + amount_e  # ✅ Now valid
 
 The compiler converts EUR amounts to USD using the defined rate:
 
-$$
+<!-- $$
 \text{amount\_total} = 1.0 + 2.0 \times 1.1624 \approx 3.32 \text{ USD}
-$$
+$$ -->
+`amount_total = 1.0 + 2.0 × 1.1624 ≈ 3.32 USD`
 
 Alternatively, you can express the total in EUR using the same conversion rate:
 ```python
