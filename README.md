@@ -163,9 +163,10 @@ amount_total: sys.cy.BTC = amount_btc + amount_usdt  # ✅ Now valid
 
 The compiler converts USDT amounts to BTC using the defined rate:
 
-$$
+<!-- $$
 \text{amount\_total} = 1.0 + \frac{50000.0}{97500.0} \approx 1.51 \text{ BTC}
-$$
+$$ -->
+`amount_total = 1.0 + 50000.0 / 97500.0 ≈ 1.51 BTC`
 
 ---
 
