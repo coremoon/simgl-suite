@@ -1,0 +1,130 @@
+# LAST WILL
+#
+# The inheritor can spend the coins if the owner doesn't move them for 180
+# days. The owner has to repeat the covenant when he moves the coins with his
+# hot key. The owner can break out of the covenant with his cold key.
+
+# ---------------------------------------------------------------------------
+# CHECKSIGNATURE
+# ---------------------------------------------------------------------------
+def checksig(pk, sig):
+    """
+    Verify that the provided signature matches the given public key for the
+    current transaction hash.
+
+    Raises AssertionError if verification fails.
+    """
+    msg = jet.sig_all_hash()
+    # implicit failure in simplicityHL → explicit in Python
+    assert jet.bip_0340_verify((pk, msg), sig)
+
+
+# ---------------------------------------------------------------------------
+# RECURSIVE COVENANT
+# ---------------------------------------------------------------------------
+def recursive_covenant():
+    """
+    Enforces the covenant in the first output, requires a fee output in the
+    second output, and disallows further outputs.
+    """
+    # Must have exactly 2 outputs
+    assert jet.num_outputs() == 2
+
+    this_script_hash = jet.current_script_hash()
+
+    # First output script hash must match current script
+    output_script_hash = jet.output_script_hash(0)
+    assert output_script_hash != None
+    assert this_script_hash == output_script_hash
+
+    # Second output must be a fee output
+    assert jet.output_is_fee(1)
+
+
+# ---------------------------------------------------------------------------
+# KEY CONVENTIONS
+# ---------------------------------------------------------------------------
+# The public keys used here are deterministic multiples of secp256k1 generator G:
+#
+#   1 * G  -> inheritor key
+#   2 * G  -> owner's cold key
+#   3 * G  -> owner's hot key
+#
+# These hex values are x-only BIP-340 public keys for demonstration purposes.
+# They are NOT secure and must not be used in production.
+# ---------------------------------------------------------------------------
+
+def inherit_spend(inheritor_sig):
+    """
+    Inheritor spend path: allowed after 180-day relative timelock.
+    Signature must match 1*G (inheritor key).
+    """
+    days_180 = 25920
+    # Enforce relative timelock
+    assert jet.check_lock_distance(days_180)
+
+    inheritor_pk = (
+        0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798
+    )  # 1 * G
+
+    checksig(inheritor_pk, inheritor_sig)
+
+
+def cold_spend(cold_sig):
+    """
+    Owner Cold Key spend path: no timelock.
+    Signature must match 2*G (cold key).
+    Immediately breaks the covenant.
+    """
+    cold_pk = (
+        0xc6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5
+    )  # 2 * G
+
+    checksig(cold_pk, cold_sig)
+
+
+def refresh_spend(hot_sig):
+    """
+    Owner Hot Key spend path: signature must match 3*G (hot key).
+    Recursive covenant enforced in the first output.
+    Allows owner to move coins while continuing the covenant.
+    """
+    hot_pk = (
+        0xf9308a019258c31049344f85f89d5229b531c845836f99b08601f113bce036f9
+    )  # 3 * G
+
+    checksig(hot_pk, hot_sig)
+
+    # Enforce covenant repetition
+    recursive_covenant()
+
+
+# ---------------------------------------------------------------------------
+# MAIN ROUTINE
+# ---------------------------------------------------------------------------
+def main():
+    """
+    Entry point of the script. Selects exactly one authorized spend path
+    based on the witness data.
+
+    Witness format:
+    {
+        "PATH": "inheritor" | "cold" | "hot",
+        "SIG": <signature>
+    }
+
+    Any invalid path triggers script failure.
+    """
+    # Safe witness access
+    path = witness.PATH
+    sig = witness.SIG
+    # assert path is not None and sig is not None, "Witness must include PATH and SIG"
+
+    if path == "inheritor":
+        inherit_spend(sig)
+    elif path == "cold":
+        cold_spend(sig)
+    elif path == "hot":
+        refresh_spend(sig)
+    else:
+        panic()
