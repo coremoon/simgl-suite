@@ -1,7 +1,7 @@
 
 # simGL
 
-**simGL** (Simplicity Gloryfied) is a Python-like dialect designed to simplify the creation of Bitcoin-based smart contracts built on **SimplicityHL**.
+**simGL** (*Sim*plicity *GL*oryfied) is a Python-like dialect designed to simplify the creation of Bitcoin-based smart contracts built on **SimplicityHL**.
 It is primarily aimed at **FinTech and finance professionals** who want to develop Bitcoin financial contracts without delving into low-level blockchain programming.
 
 ---
