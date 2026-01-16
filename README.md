@@ -135,8 +135,13 @@ amount_total: sys.cy.USD = amount_u + amount_e  # ✅ Now valid
 The compiler converts EUR amounts to USD using the defined rate:
 
 $$
-\text{amount\_total} = 1.0 + \frac{2.0}{1.1624} \approx 2.72 \text{ USD}
+\text{amount\_total} = 1.0 + 2.0 \times 1.1624 \approx 3.32 \text{ USD}
 $$
+
+Alternatively, you can express the total in EUR using the same conversion rate:
+```python
+amount_total_eur: sys.cy.EUR = amount_u + amount_e  # ✅ valid (1.0 USD / 1.1624 + 2.0 EUR ≈ 2.86 EUR)
+```
 
 ### Example 2: Crypto to Stablecoin
 
